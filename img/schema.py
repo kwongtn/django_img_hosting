@@ -73,6 +73,7 @@ class AddImg(graphene.Mutation):
             keywords=k,
             description=description,
             ori_path=ori_path,
+            thumbnail_path=thumbnail_path
         )
 
         img.save()
@@ -82,6 +83,7 @@ class AddImg(graphene.Mutation):
             img=img,
             ok=ok,
             ori_path=ori_path,
+            thumbnail_path=thumbnail_path
         )
 
 

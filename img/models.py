@@ -44,11 +44,27 @@ class ImageProcessor():
         else:
             return self.hash + "." + self.extension
 
+    def get_thumbnail_filename(self, withFilePath: bool = False) -> str:
+        if withFilePath:
+            return self.path + self.hash + "_thumb." + self.extension
+        else:
+            return self.hash + "_thumb." + self.extension
 
     def save_image(self):
         with open('.' + self.get_filename(True), "wb") as fh:
             fh.write(base64.standard_b64decode(self.base64_str))
 
+    def save_thumbnail(self):
+        with PILImage.open('.' + self.get_filename(True)) as im:
+            im.thumbnail((self.thumbnail_size, self.thumbnail_size))
+
+            if im.mode in ("RGBA", "P"):
+                background = PILImage.new("RGB", im.size, (255, 255, 255))
+                background.paste(im, mask = im.split()[3])
+                im = background
+                im = im.convert("RGB")
+
+            im.save('.' + self.get_thumbnail_filename(True), "JPEG")
 
     def __init__(self, image_str, **kwargs):
         split_img: list[str] = image_str.split(',')
@@ -67,3 +83,4 @@ class ImageProcessor():
         self.hash = hashlib.sha1(self.base64_str.encode('utf-8')).hexdigest()
 
         self.save_image()
+        self.save_thumbnail()
