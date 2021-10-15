@@ -51,9 +51,11 @@ class AddImg(graphene.Mutation):
 
     img = graphene.Field(ImgType)
     ok = Boolean()
+    ori_path = String()
+    thumbnail_path = String()
 
     @classmethod
-    def mutate(cls, root, info, title, keyword, description, image_string):
+    def mutate(cls, root, info, title: str, keyword: str, description: str, image_string: str):
         # Check if keywords exist, else add them
         # print(str(keywords))
         # for k in keywords:
