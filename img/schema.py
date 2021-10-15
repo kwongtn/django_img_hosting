@@ -3,8 +3,12 @@ from graphene.types import interface
 from graphene.types.scalars import Boolean, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
+import base64
+import hashlib
 
 from graphene import relay, ObjectType
+
+from functions.img_saver import save_image
 
 from .models import Keyword, Image
 
@@ -61,11 +65,19 @@ class AddImg(graphene.Mutation):
         k = Keyword.objects.get_or_create(word=keyword)
         k = Keyword.objects.get(word=keyword)
 
+        # Process & save the image
+        # print(image_string)
+        hash = hashlib.sha1(image_string.encode('utf-8')).hexdigest()
+
+        # print(base64.standard_b64decode(image_string))
+        save_path = save_image(base64.standard_b64decode(image_string), hash)
+
         img = Image(
             title=title,
             keywords=k,
             description=description,
-            img_str=image_string
+            img_str=image_string,
+            ori_path=save_path
         )
 
         img.save()
