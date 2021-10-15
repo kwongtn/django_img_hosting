@@ -24,7 +24,6 @@ class Image(models.Model):
     description = models.TextField()
     thumbnail_path = models.TextField()
     ori_path = models.TextField()
-    img_str = models.TextField()
 
     def __str__(self):
         return self.title
