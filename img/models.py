@@ -4,7 +4,7 @@ from django.db import models
 
 
 class Keyword(models.Model):
-    word = models.TextField()
+    word = models.TextField(unique=True)
 
     def __str__(self):
         return self.word
@@ -20,6 +20,7 @@ class Image(models.Model):
     description = models.TextField()
     thumbnail_path = models.TextField()
     ori_path = models.TextField()
+    img_str = models.TextField()
 
     def __str__(self):
         return self.title
