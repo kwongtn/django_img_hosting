@@ -8,9 +8,7 @@ import hashlib
 
 from graphene import relay, ObjectType
 
-from functions.img_saver import save_image
-
-from .models import Keyword, Image
+from .models import Keyword, Image, ImageProcessor
 
 
 class KeywordNode(DjangoObjectType):
@@ -65,25 +63,26 @@ class AddImg(graphene.Mutation):
         k = Keyword.objects.get_or_create(word=keyword)
         k = Keyword.objects.get(word=keyword)
 
-        # Process & save the image
-        # print(image_string)
-        hash = hashlib.sha1(image_string.encode('utf-8')).hexdigest()
+        imageProcessor = ImageProcessor(image_string)
 
-        # print(base64.standard_b64decode(image_string))
-        save_path = save_image(base64.standard_b64decode(image_string), hash)
+        ori_path = imageProcessor.get_filename()
+        thumbnail_path = imageProcessor.get_thumbnail_filename()
 
         img = Image(
             title=title,
             keywords=k,
             description=description,
-            img_str=image_string,
-            ori_path=save_path
+            ori_path=ori_path,
         )
 
         img.save()
         ok = True
 
-        return AddImg(img=img, ok=ok)
+        return AddImg(
+            img=img,
+            ok=ok,
+            ori_path=ori_path,
+        )
 
 
 class Mutation(graphene.ObjectType):
