@@ -33,10 +33,23 @@ class ImgNode(DjangoObjectType):
         keywords = graphene.List(KeywordNode)
 
 
+class AlbumNode(DjangoObjectType):
+    class Meta:
+        model = Album
+        interfaces = (relay.Node, )
+        filter_fields = {
+            'name': ['iexact', 'icontains', 'istartswith'],
+        }
+        fields = '__all__'
+
+        images = graphene.Field(ImgNode)
+
 
 class Query(ObjectType):
     image = relay.Node.Field(ImgNode)
     all_images = DjangoFilterConnectionField(ImgNode)
+    album = relay.Node.Field(AlbumNode)
+    all_albums = DjangoFilterConnectionField(AlbumNode)
 
 
 class ImgType(DjangoObjectType):
