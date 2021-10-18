@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_elasticsearch_dsl',
     'img',
     'graphene_django',
 ]
@@ -132,3 +133,9 @@ GRAPHENE = {
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'es01:9200'
+    },
+}
