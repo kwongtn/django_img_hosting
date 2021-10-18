@@ -12,10 +12,12 @@ from graphene import relay, ObjectType
 
 from .models import Album, Image, ImageProcessor, Keyword
 
+
 class KeywordNode(DjangoObjectType):
     class Meta:
         model = Keyword
         fields = '__all__'
+
 
 class ImgNode(DjangoObjectType):
     class Meta:
@@ -55,10 +57,10 @@ class AddImg(graphene.Mutation):
         image_string = graphene.String()
 
     img = graphene.Field(ImgType)
-    # img_id = ID()
     ok = Boolean()
     ori_path = String()
     thumbnail_path = String()
+    id = Int()
 
     @classmethod
     def mutate(cls, root, info, title: str, keywords: List(str), description: str, image_string: str):
@@ -89,7 +91,10 @@ class AddImg(graphene.Mutation):
             img=img,
             ok=ok,
             ori_path=ori_path,
-            thumbnail_path=thumbnail_path
+            thumbnail_path=thumbnail_path,
+            id=img.pk
+        )
+
         )
 
 
