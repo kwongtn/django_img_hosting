@@ -7,20 +7,11 @@ from django.conf import settings
 # Create your models here.
 
 
-class Keyword(models.Model):
-    word = models.TextField(unique=True)
-
-    def __str__(self):
-        return self.word
-
-
 class Image(models.Model):
     title = models.TextField()
-    keywords = models.ForeignKey(
-        Keyword,
-        related_name='keywords',
-        on_delete=models.CASCADE,
-    )
+
+    # A space (or comma?) separated list of keywords
+    keywords = models.TextField()
     description = models.TextField()
     thumbnail_path = models.TextField()
     ori_path = models.TextField()

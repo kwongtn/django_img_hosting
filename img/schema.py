@@ -8,14 +8,7 @@ import hashlib
 
 from graphene import relay, ObjectType
 
-from .models import Keyword, Image, ImageProcessor
-
-
-class KeywordNode(DjangoObjectType):
-    class Meta:
-        model = Keyword
-        interfaces = (relay.Node, )
-        filter_fields = ['word', 'keywords']
+from .models import Image, ImageProcessor
 
 
 class ImgNode(DjangoObjectType):
@@ -24,7 +17,7 @@ class ImgNode(DjangoObjectType):
         interfaces = (relay.Node, )
         filter_fields = {
             'title': ['iexact', 'icontains', 'istartswith'],
-            'keywords': ['exact'],
+            'keywords': ['icontains'],
             'description': ['icontains', 'istartswith'],
         }
 
@@ -33,8 +26,12 @@ class Query(ObjectType):
     image = relay.Node.Field(ImgNode)
     all_images = DjangoFilterConnectionField(ImgNode)
 
-    keyword = relay.Node.Field(KeywordNode)
-    all_keywords = DjangoFilterConnectionField(KeywordNode)
+
+class ImgType(DjangoObjectType):
+    class Meta:
+        model = Image
+
+
 
 
 
@@ -44,26 +41,19 @@ class AddImg(graphene.Mutation):
         title = graphene.String(required=True)
 
         # Temporary implementation
-        keyword = graphene.String()
+        keywords = graphene.String()
         # keywords = graphene.List(graphene.String)
         description = graphene.String()
         image_string = graphene.String()
 
     img = graphene.Field(ImgType)
+    # img_id = ID()
     ok = Boolean()
     ori_path = String()
     thumbnail_path = String()
 
     @classmethod
-    def mutate(cls, root, info, title: str, keyword: str, description: str, image_string: str):
-        # Check if keywords exist, else add them
-        # print(str(keywords))
-        # for k in keywords:
-        #     print(k)
-        #     Keyword.objects.get_or_create(word=k)
-
-        k = Keyword.objects.get_or_create(word=keyword)
-        k = Keyword.objects.get(word=keyword)
+    def mutate(cls, root, info, title: str, keywords: str, description: str, image_string: str):
 
         imageProcessor = ImageProcessor(image_string)
 
@@ -72,7 +62,7 @@ class AddImg(graphene.Mutation):
 
         img = Image(
             title=title,
-            keywords=k,
+            keywords=keywords,
             description=description,
             ori_path=ori_path,
             thumbnail_path=thumbnail_path
@@ -91,3 +81,4 @@ class AddImg(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     add_image = AddImg.Field()
+    update_image = ImgMutation.Field()
