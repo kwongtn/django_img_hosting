@@ -7,11 +7,16 @@ from django.conf import settings
 # Create your models here.
 
 
+
+class Keyword(models.Model):
+    word = models.TextField()
+
+
 class Image(models.Model):
     title = models.TextField()
 
     # A space (or comma?) separated list of keywords
-    keywords = models.TextField()
+    keywords = models.ManyToManyField(Keyword, related_name='image')
     description = models.TextField()
     thumbnail_path = models.TextField()
     ori_path = models.TextField()

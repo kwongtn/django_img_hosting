@@ -1,15 +1,21 @@
 import graphene
 from graphene.types import interface
-from graphene.types.scalars import Boolean, String
+from graphene.types.scalars import ID, Boolean, Int, String
+from graphene.types.structures import List
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
-import base64
-import hashlib
+from graphene_django.forms import forms
+from graphene_django.forms.mutation import DjangoModelFormMutation
 
 from graphene import relay, ObjectType
 
-from .models import Image, ImageProcessor
 
+from .models import Album, Image, ImageProcessor, Keyword
+
+class KeywordNode(DjangoObjectType):
+    class Meta:
+        model = Keyword
+        fields = '__all__'
 
 class ImgNode(DjangoObjectType):
     class Meta:
@@ -20,6 +26,10 @@ class ImgNode(DjangoObjectType):
             'keywords': ['icontains'],
             'description': ['icontains', 'istartswith'],
         }
+        fields = '__all__'
+
+    keywords = graphene.List(KeywordNode)
+
 
 
 class Query(ObjectType):
@@ -40,9 +50,7 @@ class AddImg(graphene.Mutation):
         # Input arguments for mutation
         title = graphene.String(required=True)
 
-        # Temporary implementation
-        keywords = graphene.String()
-        # keywords = graphene.List(graphene.String)
+        keywords = graphene.List(graphene.String)
         description = graphene.String()
         image_string = graphene.String()
 
@@ -53,8 +61,7 @@ class AddImg(graphene.Mutation):
     thumbnail_path = String()
 
     @classmethod
-    def mutate(cls, root, info, title: str, keywords: str, description: str, image_string: str):
-
+    def mutate(cls, root, info, title: str, keywords: List(str), description: str, image_string: str):
         imageProcessor = ImageProcessor(image_string)
 
         ori_path = imageProcessor.get_filename()
@@ -62,11 +69,18 @@ class AddImg(graphene.Mutation):
 
         img = Image(
             title=title,
-            keywords=keywords,
             description=description,
             ori_path=ori_path,
             thumbnail_path=thumbnail_path
         )
+
+        img.save()
+
+        for k in keywords:
+            kw = Keyword.objects.get_or_create(word=k)
+            kw = Keyword.objects.get(word=k)
+
+            img.keywords.add(kw)
 
         img.save()
         ok = True
