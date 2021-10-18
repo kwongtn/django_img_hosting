@@ -30,7 +30,7 @@ class ImgNode(DjangoObjectType):
         }
         fields = '__all__'
 
-    keywords = graphene.List(KeywordNode)
+        keywords = graphene.List(KeywordNode)
 
 
 
