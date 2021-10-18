@@ -7,6 +7,9 @@ from django.conf import settings
 # Create your models here.
 
 
+class Album(models.Model):
+    name = models.TextField()
+
 
 class Keyword(models.Model):
     word = models.TextField()
@@ -14,6 +17,8 @@ class Keyword(models.Model):
 
 class Image(models.Model):
     title = models.TextField()
+
+    album = models.ManyToManyField(Album, related_name='images')
 
     # A space (or comma?) separated list of keywords
     keywords = models.ManyToManyField(Keyword, related_name='image')

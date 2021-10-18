@@ -44,7 +44,9 @@ class ImgType(DjangoObjectType):
         model = Image
 
 
-
+class AlbumType(DjangoObjectType):
+    class Meta:
+        model = Album
 
 
 class AddImg(graphene.Mutation):
@@ -95,9 +97,28 @@ class AddImg(graphene.Mutation):
             id=img.pk
         )
 
+
+class AddAlbum(graphene.Mutation):
+    class Arguments:
+        # Input arguments for mutation
+        name = graphene.String(required=True)
+
+    ok = Boolean()
+    id = Int()
+
+    @classmethod
+    def mutate(cls, root, info, name: str):
+        album = Album(name=name)
+        album.save()
+
+        ok = True
+
+        return AddAlbum(ok=ok, id=album.pk)
+
+
         )
 
 
 class Mutation(graphene.ObjectType):
     add_image = AddImg.Field()
-    update_image = ImgMutation.Field()
+    add_album = AddAlbum.Field()
