@@ -1,3 +1,5 @@
+from img.documents import ImageDocument
+from .models import Album, Image, ImageProcessor, Keyword
 import graphene
 from graphene.types import interface
 from graphene.types.scalars import ID, Boolean, Int, String
@@ -8,9 +10,6 @@ from graphene_django.forms import forms
 from graphene_django.forms.mutation import DjangoModelFormMutation
 
 from graphene import relay, ObjectType
-
-
-from .models import Album, Image, ImageProcessor, Keyword
 
 
 class KeywordNode(DjangoObjectType):

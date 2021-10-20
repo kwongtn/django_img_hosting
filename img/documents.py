@@ -11,11 +11,11 @@ class ImageDocument(Document):
         }
     )
 
-    # albums = fields.NestedField(
-    #     properties={
-    #         'name': fields.TextField()
-    #     }
-    # )
+    album = fields.ObjectField(
+        properties={
+            'name': fields.TextField()
+        }
+    )
 
     class Index:
         name = 'images'
@@ -47,6 +47,5 @@ class ImageDocument(Document):
         """
         if isinstance(related_instance, Image):
             return related_instance.keywords
-
-        # elif isinstance(related_instance, Ad):
-        #     return related_instance.car
+        elif isinstance(related_instance, Image):
+            return related_instance.album
