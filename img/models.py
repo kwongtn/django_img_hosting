@@ -61,7 +61,7 @@ class ImageProcessor():
 
             if im.mode in ("RGBA", "P"):
                 background = PILImage.new("RGB", im.size, (255, 255, 255))
-                background.paste(im, mask = im.split()[3])
+                background.paste(im, mask=im.split()[3])
                 im = background
                 im = im.convert("RGB")
 
