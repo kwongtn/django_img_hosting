@@ -14,12 +14,16 @@ from .models import Album, Image, ImageProcessor, Keyword
 
 
 class KeywordNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = Keyword
         fields = '__all__'
 
 
 class ImgNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = Image
         interfaces = (relay.Node, )
@@ -34,6 +38,8 @@ class ImgNode(DjangoObjectType):
 
 
 class AlbumNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = Album
         interfaces = (relay.Node, )
