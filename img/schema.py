@@ -162,7 +162,26 @@ class AddImageToAlbum(graphene.Mutation):
         )
 
 
+class DeleteAlbum(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, id: int):
+        a = Album.objects.get(pk=id)
+        a.delete()
+
+        ok = True
+
+        return DeleteAlbum(
+            ok=ok
+        )
+
+
 class Mutation(graphene.ObjectType):
     add_image = AddImg.Field()
     add_album = AddAlbum.Field()
     add_image_to_album = AddImageToAlbum.Field()
+    delete_album = DeleteAlbum.Field()
