@@ -1,13 +1,12 @@
+import json
+from django.db.models import query
+from elasticsearch_dsl.query import Q
 from img.documents import ImageDocument
 from .models import Album, Image, ImageProcessor, Keyword
 import graphene
-from graphene.types import interface
-from graphene.types.scalars import ID, Boolean, Int, String
+from graphene.types.scalars import Boolean, Int, String
 from graphene.types.structures import List
 from graphene_django import DjangoObjectType
-from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.forms import forms
-from graphene_django.forms.mutation import DjangoModelFormMutation
 
 from graphene import relay, ObjectType
 
@@ -38,7 +37,7 @@ class ImgNode(DjangoObjectType):
         interfaces = (relay.Node, )
         filter_fields = {
             'title': ['iexact', 'icontains', 'istartswith'],
-            'keywords': ['icontains'],
+            'keywords__word': ['icontains'],
             'description': ['icontains', 'istartswith'],
         }
         fields = '__all__'
@@ -61,12 +60,9 @@ class AlbumNode(DjangoObjectType):
 
 
 class Query(ObjectType):
-    image = relay.Node.Field(ImgNode)
-    all_images = DjangoFilterConnectionField(ImgNode)
-    album = relay.Node.Field(AlbumNode)
-    all_albums = DjangoFilterConnectionField(AlbumNode)
+    album = graphene.List(AlbumType)
 
-    es_image = graphene.List(ImgType,
+    images = graphene.List(ImgType,
                              description_contains=graphene.List(
                                  graphene.String),
                              description_xcontains=graphene.List(
@@ -78,7 +74,7 @@ class Query(ObjectType):
                              search=graphene.String(),
                              )
 
-    def resolve_es_image(self, info, *args, **kwargs):
+    def resolve_images(self, info, *args, **kwargs) -> query.QuerySet(Image):
         s = ImageDocument.search()
 
         advSearchArr: dict(str, list(Q)) = {

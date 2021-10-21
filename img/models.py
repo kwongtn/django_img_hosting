@@ -63,7 +63,8 @@ class ImageProcessor():
                 background = PILImage.new("RGB", im.size, (255, 255, 255))
                 background.paste(im, mask=im.split()[3])
                 im = background
-                im = im.convert("RGB")
+            
+            im = im.convert("RGB")
 
             im.save('.' + self.get_thumbnail_filename(True), "JPEG")
 
