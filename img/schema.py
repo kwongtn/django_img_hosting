@@ -21,6 +21,11 @@ class AlbumType(DjangoObjectType):
         model = Album
 
 
+class KeywordType(DjangoObjectType):
+    class Meta:
+        model = Keyword
+
+
 class KeywordNode(DjangoObjectType):
     id = graphene.ID(source='pk', required=True)
 
@@ -60,19 +65,24 @@ class AlbumNode(DjangoObjectType):
 
 
 class Query(ObjectType):
+    all_keywords = relay.node.Field(KeywordNode)
+    keywords = graphene.List(KeywordType)
+
+    all_albums = relay.node.Field(AlbumNode)
     album = graphene.List(AlbumType)
 
+    all_images = relay.node.Field(ImgNode)
     images = graphene.List(ImgType,
-                             description_contains=graphene.List(
-                                 graphene.String),
-                             description_xcontains=graphene.List(
-                                 graphene.String),
-                             title_contains=graphene.List(graphene.String),
-                             title_xcontains=graphene.List(graphene.String),
-                             keyword_contains=graphene.List(graphene.String),
-                             keyword_xcontains=graphene.List(graphene.String),
-                             search=graphene.String(),
-                             )
+                           description_contains=graphene.List(
+                               graphene.String),
+                           description_xcontains=graphene.List(
+                               graphene.String),
+                           title_contains=graphene.List(graphene.String),
+                           title_xcontains=graphene.List(graphene.String),
+                           keyword_contains=graphene.List(graphene.String),
+                           keyword_xcontains=graphene.List(graphene.String),
+                           search=graphene.String(),
+                           )
 
     def resolve_images(self, info, *args, **kwargs) -> query.QuerySet(Image):
         s = ImageDocument.search()
@@ -164,6 +174,49 @@ class AddImg(graphene.Mutation):
             ori_path=ori_path,
             thumbnail_path=thumbnail_path,
             id=img.pk
+        )
+
+
+class AddImgUsingJson(graphene.Mutation):
+    class Arguments:
+        # Input arguments for mutation
+        input_json = graphene.String(required=True)
+
+    added = Int()
+
+    @classmethod
+    def mutate(cls, root, info, input_json: str):
+        parsed_json = json.loads(input_json)
+        print(parsed_json)
+
+        added: int = 0
+
+        for elem in parsed_json:
+            imageProcessor = ImageProcessor(elem.image_string)
+
+            ori_path = imageProcessor.get_filename()
+            thumbnail_path = imageProcessor.get_thumbnail_filename()
+
+            img = Image(
+                title=elem.title,
+                description=elem.description,
+                ori_path=ori_path,
+                thumbnail_path=thumbnail_path
+            )
+
+            img.save()
+
+            for k in elem.keywords:
+                kw = Keyword.objects.get_or_create(word=k)
+                kw = Keyword.objects.get(word=k)
+
+                img.keywords.add(kw)
+
+            img.save()
+            added += 1
+
+        return AddImg(
+            added=added
         )
 
 
@@ -261,6 +314,7 @@ class DeleteImageFromAlbum(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     add_image = AddImg.Field()
+    add_image_using_json = AddImgUsingJson.Field()
     add_album = AddAlbum.Field()
     add_image_to_album = AddImageToAlbum.Field()
     delete_album = DeleteAlbum.Field()
