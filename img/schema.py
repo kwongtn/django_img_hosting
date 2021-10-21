@@ -12,6 +12,16 @@ from graphene_django.forms.mutation import DjangoModelFormMutation
 from graphene import relay, ObjectType
 
 
+class ImgType(DjangoObjectType):
+    class Meta:
+        model = Image
+
+
+class AlbumType(DjangoObjectType):
+    class Meta:
+        model = Album
+
+
 class KeywordNode(DjangoObjectType):
     id = graphene.ID(source='pk', required=True)
 
@@ -56,15 +66,60 @@ class Query(ObjectType):
     album = relay.Node.Field(AlbumNode)
     all_albums = DjangoFilterConnectionField(AlbumNode)
 
+    es_image = graphene.List(ImgType,
+                             description_contains=graphene.List(
+                                 graphene.String),
+                             description_xcontains=graphene.List(
+                                 graphene.String),
+                             title_contains=graphene.List(graphene.String),
+                             title_xcontains=graphene.List(graphene.String),
+                             keyword_contains=graphene.List(graphene.String),
+                             keyword_xcontains=graphene.List(graphene.String),
+                             search=graphene.String(),
+                             )
 
-class ImgType(DjangoObjectType):
-    class Meta:
-        model = Image
+    def resolve_es_image(self, info, *args, **kwargs):
+        s = ImageDocument.search()
 
+        advSearchArr: dict(str, list(Q)) = {
+            'must': [], 'must_not': []
+        }
+        if kwargs.get('description_contains') is not None:
+            for elem in kwargs.get('description_contains'):
+                advSearchArr['must'].append(Q('match', description=elem))
 
-class AlbumType(DjangoObjectType):
-    class Meta:
-        model = Album
+        if kwargs.get('description_xcontains') is not None:
+            for elem in kwargs.get('description_xcontains'):
+                advSearchArr['must_not'].append(Q('match', description=elem))
+
+        if kwargs.get('title_contains') is not None:
+            for elem in kwargs.get('title_contains'):
+                advSearchArr['must'].append(Q('match', title=elem))
+
+        if kwargs.get('title_xcontains') is not None:
+            for elem in kwargs.get('title_xcontains'):
+                advSearchArr['must_not'].append(Q('match', title=elem))
+
+        if kwargs.get('keyword_contains') is not None:
+            for elem in kwargs.get('keyword_contains'):
+                advSearchArr['must'].append(Q('match', keyword__word=elem))
+
+        if kwargs.get('keyword_xcontains') is not None:
+            for elem in kwargs.get('keyword_xcontains'):
+                advSearchArr['must_not'].append(Q('match', keyword__word=elem))
+
+        if kwargs.get('search') is not None:
+            s = s.query('multi_match', query=kwargs.get('search'),
+                        fields=['title^3', 'keywords.word^2', 'description'],
+                        type='phrase')
+
+        if len(advSearchArr['must']) != 0 or len(advSearchArr['must_not']) != 0:
+            q = Q('bool',
+                  must=advSearchArr['must'],
+                  must_not=advSearchArr['must_not'])
+            s = s.query(q)
+
+        return s.to_queryset()
 
 
 class AddImg(graphene.Mutation):
