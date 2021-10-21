@@ -1,3 +1,4 @@
+from graphene_django.filter import DjangoFilterConnectionField
 import json
 from django.db.models import query
 from elasticsearch_dsl.query import Q
@@ -31,7 +32,8 @@ class KeywordNode(DjangoObjectType):
 
     class Meta:
         model = Keyword
-        fields = '__all__'
+        interfaces = (relay.Node, )
+        fields = ['word']
 
 
 class ImgNode(DjangoObjectType):
@@ -65,11 +67,10 @@ class AlbumNode(DjangoObjectType):
 
 
 class Query(ObjectType):
-    all_keywords = relay.node.Field(KeywordNode)
-    keywords = graphene.List(KeywordType)
+    keyword = relay.Node.Field(KeywordNode)
 
-    all_albums = relay.node.Field(AlbumNode)
-    album = graphene.List(AlbumType)
+    all_albums = DjangoFilterConnectionField(AlbumNode)
+    album = relay.Node.Field(AlbumNode)
 
     all_images = relay.node.Field(ImgNode)
     images = graphene.List(ImgType,
