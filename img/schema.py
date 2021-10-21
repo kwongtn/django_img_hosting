@@ -194,17 +194,23 @@ class AddImageToAlbum(graphene.Mutation):
         # Input arguments for mutation
         id = graphene.Int(required=True)
         images = graphene.List(Int)
+        titles = graphene.List(String)
 
     # img_id = ID()
     ok = Boolean()
     # added = List(str)
 
     @classmethod
-    def mutate(cls, root, info, id: int, images: List(int)):
+    def mutate(cls, root, info, id: int, images: List(int), titles: List(str)):
         a = Album(pk=id)
 
         for i in images:
             i = Image(pk=i)
+            i.album.add(a)
+            i.save()
+
+        for t in titles:
+            i = Image(title=t)
             i.album.add(a)
             i.save()
 
